@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Masuk — SehatIQ</title><link rel="stylesheet" href="css/style.css">
+<style>body{align-items:center;justify-content:center;padding:16px}.box{width:100%;max-width:400px;margin:0}.box .brand{color:var(--pri)}</style></head>
+<body><div class="card box">
+<div class="brand"><span id="lg"></span>SehatIQ</div>
+<p class="mut" id="sub">Masuk untuk membuka data kesehatan Anda.</p>
+<div id="er" class="alert bad" style="display:none"></div>
+<form id="f"><label id="ln" style="display:none">Nama lengkap<input name="nama"></label>
+<label>Email<input type="email" name="email" required></label>
+<label>Kata sandi<input type="password" name="pass" minlength="6" required></label>
+<button class="btn" style="width:100%;justify-content:center" id="bt">Masuk</button></form>
+<p class="mut" style="text-align:center"><a href="#" id="sw">Belum punya akun? Daftar</a></p></div>
+<script src="js/icons.js"></script>
+<script>
+let mode='login';const $=s=>document.querySelector(s);$('#lg').innerHTML=ic('shield',26);
+$('#sw').onclick=e=>{e.preventDefault();mode=mode==='login'?'register':'login';const r=mode==='register';
+ $('#ln').style.display=r?'block':'none';$('#bt').textContent=r?'Daftar':'Masuk';$('#sub').textContent=r?'Buat akun baru — gratis.':'Masuk untuk membuka data kesehatan Anda.';$('#sw').textContent=r?'Sudah punya akun? Masuk':'Belum punya akun? Daftar';$('#er').style.display='none'};
+$('#f').onsubmit=async e=>{e.preventDefault();const er=$('#er');er.style.display='none';
+ try{const r=await fetch('api/auth.php?a='+mode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(e.target)))});
+  const j=await r.json();if(j.ok)location.href='index.html';else{er.textContent=j.error||'Gagal';er.style.display='block'}}
+ catch(x){er.textContent='Tidak dapat terhubung ke server. Pastikan Apache & MySQL XAMPP aktif dan buka lewat http://localhost/sehatiq/';er.style.display='block'}};
+</script></body></html>

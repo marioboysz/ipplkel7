@@ -1,0 +1,15 @@
+Modules.meds={t:'Pengingat Obat',i:'pill',fired:new Set(),
+today(){const d=Store.d,t=today(),L=[];d.meds.forEach(m=>m.jam.split(',').map(x=>x.trim()).filter(Boolean).forEach(j=>L.push({m,j,k:t+'|'+m.id+'|'+j,done:!!d.medLog[t+'|'+m.id+'|'+j]})));return L.sort((a,b)=>a.j.localeCompare(b.j))},
+adh(){const L=this.today();return L.length?L.filter(x=>x.done).length/L.length:null},
+tick(){const n=nowT(),t=today();this.today().forEach(x=>{const id=x.k+n;if(x.j===n&&!x.done&&!this.fired.has(id)){this.fired.add(id);toast(`Waktunya minum ${x.m.nama} (${x.m.dosis})`,12000);
+  if('Notification'in window&&Notification.permission==='granted')new Notification('SehatIQ — Waktunya minum obat',{body:`${x.m.nama} ${x.m.dosis}`})}})},
+r(el){const M=this,d=Store.d,L=M.today();
+ el.innerHTML=`<div class="grid g2"><div class="card"><h3>Tambah Obat</h3><form id="f"><label>Nama obat<input name="nama" required></label><div class="row"><label>Dosis<input name="dosis" placeholder="1 tablet" required></label><label>Stok<input type="number" name="stok" min="0"></label></div>
+ <label>Jam minum (pisahkan koma)<input name="jam" placeholder="07:00, 19:00" required></label><label>Catatan (mis. sesudah makan)<input name="cat"></label><button class="btn">Tambah</button> <button type="button" class="btn alt" id="nt">Aktifkan Notifikasi</button></form></div>
+ <div class="card"><h3>Jadwal Hari Ini — ${Math.round((M.adh()||0)*100)}% terpenuhi</h3>${L.map(x=>`<label class="item" style="margin:0;color:var(--tx)"><input type="checkbox" style="width:auto" data-k="${x.k}" data-m="${x.m.id}" ${x.done?'checked':''}><div><b>${x.j}</b> — ${esc(x.m.nama)} <span class="mut">${esc(x.m.dosis)} ${esc(x.m.cat||'')}</span></div></label>`).join('')||'<p class="mut">Belum ada jadwal.</p>'}</div></div>
+ <div class="card"><h3>Daftar Obat</h3>${d.meds.map(m=>`<div class="item"><div><b>${esc(m.nama)}</b> — ${esc(m.dosis)}<div class="mut">Jam: ${esc(m.jam)} • Stok: ${m.stok??'-'} ${m.cat?'• '+esc(m.cat):''}</div></div><button class="x" data-d="${m.id}">${ic('x',16)}</button></div>`).join('')||'<p class="mut">Kosong</p>'}</div>`;
+ $('#f',el).onsubmit=e=>{e.preventDefault();const f=fd(e.target);if(!f.jam.split(',').every(j=>/^\d{1,2}:\d{2}$/.test(j.trim())))return toast('Format jam salah, contoh 07:00, 19:00');
+  f.jam=f.jam.split(',').map(j=>{j=j.trim().split(':');return j[0].padStart(2,'0')+':'+j[1]}).join(',');Store.add('meds',f);M.r(el)};
+ $('#nt',el).onclick=()=>'Notification'in window?Notification.requestPermission().then(p=>toast(p==='granted'?'Notifikasi aktif':'Notifikasi ditolak')):toast('Browser tidak mendukung');
+ $$('[data-k]',el).forEach(c=>c.onchange=()=>{const m=d.meds.find(x=>x.id===c.dataset.m);if(c.checked){d.medLog[c.dataset.k]=1;if(m&&m.stok!==''&&m.stok!==undefined)m.stok=Math.max(0,+m.stok-1)}else{delete d.medLog[c.dataset.k];if(m&&m.stok!==''&&m.stok!==undefined)m.stok=+m.stok+1}Store.save();M.r(el)});
+ $$('[data-d]',el).forEach(b=>b.onclick=()=>{Store.del('meds',b.dataset.d);M.r(el)})}};
